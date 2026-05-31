@@ -70,17 +70,42 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-sequelize
-  .authenticate()
+async function connectDatabase(maxAttempts = 5) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await sequelize.authenticate();
+      console.log('✅ Berhasil terhubung ke database MySQL.');
+      return;
+    } catch (err) {
+      const isLastAttempt = attempt === maxAttempts;
+      console.error(
+        `❌ Gagal terhubung ke Database (percobaan ${attempt}/${maxAttempts}):`,
+        err.message
+      );
+
+      if (isLastAttempt) {
+        console.error('Detail:', err.original?.code || err.name);
+        console.error(
+          'Periksa DB_HOST/MYSQLHOST (gunakan mysql.railway.internal), DB_PORT/MYSQLPORT, dan nama database.'
+        );
+        process.exit(1);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+}
+
+connectDatabase()
   .then(async () => {
-    console.log('✅ Berhasil terhubung ke database MySQL.');
     await runMigrations();
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server berjalan di: http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('❌ Gagal terhubung ke Database:', err.message);
+    console.error('❌ Startup gagal:', err.message);
+    process.exit(1);
   });
 
 app.use((err, req, res, next) => {
