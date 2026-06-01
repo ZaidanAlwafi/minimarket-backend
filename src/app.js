@@ -98,7 +98,13 @@ async function connectDatabase(maxAttempts = 5) {
 
 connectDatabase()
   .then(async () => {
-    await runMigrations();
+    // Matikan dulu migration lama yang error
+    // await runMigrations(); 
+    
+    // Gunakan jurus sakti Sequelize untuk membuat tabel otomatis
+    await sequelize.sync({ alter: true }); 
+    console.log('✅ Semua tabel berhasil dibuat/diupdate oleh Sequelize!');
+
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server berjalan di: http://localhost:${PORT}`);
     });
