@@ -98,13 +98,10 @@ async function connectDatabase(maxAttempts = 5) {
 
 connectDatabase()
   .then(async () => {
-    // Matikan dulu migration lama yang error
-    // await runMigrations(); 
-    
-    // Gunakan jurus sakti Sequelize untuk membuat tabel otomatis
-    await sequelize.sync({ alter: true }); 
+    // await runMigrations();
+    await sequelize.sync({ alter: true });
     console.log('✅ Semua tabel berhasil dibuat/diupdate oleh Sequelize!');
-
+    
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server berjalan di: http://localhost:${PORT}`);
     });
@@ -121,4 +118,5 @@ app.use((err, req, res, next) => {
     message: 'Terjadi kesalahan internal pada server',
     error: err.message,
   });
+});
 });
